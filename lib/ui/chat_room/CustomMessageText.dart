@@ -5,6 +5,7 @@ import 'package:jitsi/resourses/Dimens.dart';
 import 'package:jitsi/resourses/Styles.dart';
 
 enum MessageType { sent, received }
+enum AttachmentType { image, video, file, audio }
 
 class CustomMessageText extends StatelessWidget {
   double minWidth, maxWidth;
@@ -22,46 +23,46 @@ class CustomMessageText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.symmetric(
-          vertical: DIMEN_2,
-          horizontal: DIMEN_8,
+      padding: EdgeInsets.symmetric(
+        vertical: DIMEN_2,
+        horizontal: DIMEN_8,
+      ),
+      margin: EdgeInsets.symmetric(
+        vertical: DIMEN_4,
+        horizontal: DIMEN_12,
+      ),
+      constraints: BoxConstraints(
+          minWidth: minWidth ?? DIMEN_100, maxWidth: maxWidth ?? DIMEN_200),
+      decoration: BoxDecoration(
+        color: messageBgColor(context),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(topLeftRadius()),
+          topRight: Radius.circular(topRightRadius()),
+          bottomLeft: Radius.circular(DIMEN_8),
+          bottomRight: Radius.circular(DIMEN_8),
         ),
-        margin: EdgeInsets.symmetric(
-          vertical: DIMEN_4,
-          horizontal: DIMEN_12,
-        ),
-        constraints: BoxConstraints(
-            minWidth: minWidth ?? DIMEN_100, maxWidth: maxWidth ?? DIMEN_200),
-        decoration: BoxDecoration(
-          color: messageBgColor(context),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(topLeftRadius()),
-            topRight: Radius.circular(topRightRadius()),
-            bottomLeft: Radius.circular(DIMEN_8),
-            bottomRight: Radius.circular(DIMEN_8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: messageAlignment(),
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+              vertical: DIMEN_4,
+              horizontal: DIMEN_4,
+            ),
+            child:
+                Text(message ?? "Message here...", style: MESSAGE_TEXT_STYLE),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: messageAlignment(),
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(
-                vertical: DIMEN_4,
-                horizontal: DIMEN_4,
-              ),
-              child:
-                  Text(message ?? "Message here...", style: MESSAGE_TEXT_STYLE),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: DIMEN_2,
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: DIMEN_2,
-              ),
-              child: messageTime(),
-            ),
-          ],
-        ),
-      );
+            child: messageTime(),
+          ),
+        ],
+      ),
+    );
   }
 
   Color messageBgColor(BuildContext context) {
