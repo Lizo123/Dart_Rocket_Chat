@@ -30,18 +30,23 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
   List<Message> newList = [];
   List<Message> oldList = [];
   ClientReal clientReal;
+  bool top = false;
 
   @override
   void initState() {
     super.initState();
-//    newList.clear();
-    if (!widget.client.completer.isClosed) widget.client.completer.sink.add([]);
+    newList.clear();
+
     controller = AutoScrollController(
         viewportBoundaryGetter: () =>
             Rect.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom),
         axis: Axis.vertical);
     WidgetsBinding.instance.addObserver(this);
     clientReal = widget.clientReal;
+    // Future.delayed(const Duration(milliseconds: 500), () {
+    widget.client.loadIMHistory(widget.roomId);
+    //  });
+
     clientReal.roomMessages().listen((data) {
       if (data.doc != null && data.doc.values != null) {
         var valuesList = data.doc.values.toList();
@@ -50,12 +55,12 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
           if (list.isNotEmpty && list.length >= 1) {
             var messageData = list[0];
             var mm = Message.fromJson(messageData);
-            if (!widget.client.completer.isClosed) {
-              newList.add(mm);
-              widget.client.completer.sink.add(newList);
-              if (!scrollStreamController.isClosed)
-                scrollStreamController.sink.add(false);
-            }
+            //  if (!widget.client.completer.isClosed) {
+            newList.add(mm);
+            widget.client.completer.sink.add(newList);
+            if (!scrollStreamController.isClosed)
+              scrollStreamController.sink.add(false);
+            //  }
           }
         }
       }
@@ -64,27 +69,35 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
       if (controller.offset <= controller.position.minScrollExtent) {
         if (!scrollStreamController.isClosed)
           scrollStreamController.sink.add(false);
+//        setState(() {
+        top = true;
+//        });
 //        if (!widget.client.lastPostion.isClosed)
-//          widget.client.lastPostion.sink.add(newList.length-19);
+//          widget.client.lastPostion.sink.add(newList.length);
         widget.client.loadIMHistory(widget.roomId, count: newList.length + 20);
+      } else {
+//        setState(() {
+        top = false;
+//        });
       }
     });
     scrollStreamController.stream.listen((event) {
       if (event) {
-        if (newList.length <= 20) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            controller.animateTo(controller.position.maxScrollExtent,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut);
-          });
-        }
+        //    if (newList.length <= 20) {
+        print("last message " + newList[newList.length - 1].msg);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          controller.animateTo(controller.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut);
+        });
+        // }
       }
     });
     widget.client.lastPostion.stream.listen((event) {
       print("ScrollTooo=====>>> ${event}");
-      _scrollToIndex(event );
+      print("ScrollTooo=====>>> ${event - 40}");
+      _scrollToIndex(20);
     });
-    widget.client.loadIMHistory(widget.roomId);
   }
 
   @override
@@ -128,19 +141,20 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
                                   );
                                 } else {
                                   newList = snapshot.data;
-                                  oldList = oldList + newList;
                                   if (newList.length == 20) {
                                     scrollStreamController.sink.add(true);
                                   } else {
+                                    if (top) {
+                                      print("top $top");
+
+                                      widget.client.lastPostion.sink
+                                          .add(newList.length);
+                                    }
                                     scrollStreamController.sink.add(false);
                                   }
                                   print(
                                       "messages List Length====>>>> ${newList.length}");
-                                 /* if (!widget.client.lastPostion.isClosed)
-                                    widget.client.lastPostion.sink
-                                        .add(oldList.length);*/
-                                  if (!widget.client.lastPostion.isClosed)
-                                    widget.client.lastPostion.sink.add(newList.length-21);
+
                                   return ListView.builder(
                                       controller: controller,
                                       itemCount: newList.length,
@@ -200,17 +214,18 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
 
   void didUpdateWidget(ChatRoom oldWidget) {
     super.didUpdateWidget(oldWidget);
-    /*   WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.animateTo(controller.position.maxScrollExtent,
           duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-    });*/
+    });
   }
 
   @override
   void dispose() async {
     scrollStreamController.close();
-    widget.client.lastPostion.close();
-    widget.client.completer.close();
+
+    widget.client.completer.sink.add([]);
+
     super.dispose();
   }
 
@@ -255,10 +270,11 @@ class _ChatRoomState extends State<ChatRoom> with WidgetsBindingObserver {
   }
 
   Future _scrollToIndex(int position) async {
-    controller.jumpTo(position * 1.0);
-//     await controller.scrollToIndex(position,
-//        preferPosition: AutoScrollPosition.begin);
+//    controller.jumpTo(position * 1.0);
+    await controller.scrollToIndex(position,
+        preferPosition: AutoScrollPosition.begin);
     controller.highlight(position);
+    print("ScrollTooo=====>>> ${position}");
   }
 
   Widget _wrapScrollTag({int index, Widget child}) => AutoScrollTag(

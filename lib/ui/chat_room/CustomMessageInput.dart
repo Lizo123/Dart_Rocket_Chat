@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jitsi/resourses/AppColors.dart';
 import 'package:jitsi/resourses/Images.dart';
-import 'file:///D:/flutter%20chat/Dart_Rocket_Chat/lib/ui/camera_screen/TakeAPicutre.dart';
+import 'package:jitsi/ui/camera_screen/TakeAPicutre.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
 import 'package:rxdart/rxdart.dart';

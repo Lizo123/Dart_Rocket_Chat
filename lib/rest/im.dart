@@ -1,8 +1,9 @@
 part of rest;
 
 abstract class _ClientIMMixin implements _ClientWrapper {
-  BehaviorSubject<List<Message>> completer = BehaviorSubject<List<Message>>();
-  BehaviorSubject<int> lastPostion = BehaviorSubject<int>();
+  StreamController<List<Message>> completer =
+      StreamController<List<Message>>.broadcast();
+  StreamController<int> lastPostion = StreamController<int>.broadcast();
 
   Stream<List<Message>> loadIMHistory(
     String roomId, {
@@ -41,7 +42,10 @@ abstract class _ClientIMMixin implements _ClientWrapper {
         results.add(Message.fromJson(raw));
       }
       results = results.reversed.toList();
-      if (!completer.isClosed) completer.sink.add(results);
+      //   if (completer.isClosed) {
+      completer.sink.add(results);
+
+      //   }
     }).catchError((error) {
       print("error ${error.toString()}");
       if ((error as StateError) != null) {
